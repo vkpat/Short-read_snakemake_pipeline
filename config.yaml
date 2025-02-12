@@ -1,0 +1,23 @@
+RUNID: "HG008_Element_lnginsert"
+REFIDS: ["GRCh37","GRCh38-GIABv3", "CHM13V2"]
+REF:
+  GRCh37: ../resources/hs37d5.fa.gz
+  GRCh38-GIABv3: ../resources/GRCh38_GIABv3_no_alt_analysis_set_maskedGRC_decoys_MAP2K3_KMT2C_KCNJ18.fasta.gz
+  CHM13V2: ../resources/chm13v2.0_maskedY_rCRS.fa.gz
+SAMPLES:
+  [
+  "HG008-T_PDAC3066_Long" 
+  ]
+THREADS:
+  bwa: 15
+  samstat : 4
+READPAIRS:
+  HG008-T_PDAC3066_Long:
+    read_group:
+      ID: "HG008-T_KOL-0806"
+      CN: "Element"
+      SM: "HG008-T"
+      PL: "Aviti_UltraQ"  
+      DT: 2024 
+    R1: /scratch2/Element_HG008_20240626/Element_lnginsert/HG008-T/PDAC3066_Long/PDAC3066_Long_R1.fastq.gz
+    R2: /scratch2/Element_HG008_20240626/Element_lnginsert/HG008-T/PDAC3066_Long/PDAC3066_Long_R2.fastq.gz
