@@ -1,0 +1,101 @@
+configfile: "config.yaml"
+
+wildcard_constraints:
+    refid="|".join(config['REFIDS']),
+    sample="|".join(config['SAMPLES'])
+
+rule all:
+    input:
+        expand("alignments/{refid}_{sample}.bam", refid=config['REFIDS'], sample=config['SAMPLES']),
+        expand("alignments/{refid}_{sample}.samtools_stats.txt", refid=config['REFIDS'], sample=config['SAMPLES']),
+        expand( "mosdepth_bed/{refid}_{sample}.regions.bed.gz",refid=config['REFIDS'], sample=config['SAMPLES']),
+        expand("fastqc/{sample}_fastqc.zip",sample=config['SAMPLES']),
+        "qc/HG008_Element_Lnginsert_report.html"
+
+def get_read_group(wildcards):
+    rg = config['READPAIRS'][wildcards.sample]['read_group']
+    rg_str = '\\t'.join([f'{k}:{v}' for k, v in rg.items()])
+    return f"-R '@RG\\t{rg_str}'"
+
+rule fastqc:
+    input:
+        r1 = lambda wildcards: config['READPAIRS'][wildcards.sample]['R1'],
+        r2 = lambda wildcards: config['READPAIRS'][wildcards.sample]['R2']
+    output:
+        html = temp("fastqc/{sample}_fastqc.html"),
+        zip = temp("fastqc/{sample}_fastqc.zip")
+    wrapper:
+        "0.72.0/bio/fastqc"
+
+rule bwa_mem:
+    input:
+        reads = lambda wildcards: [config['READPAIRS'][wildcards.sample]['R1'], config['READPAIRS'][wildcards.sample]['R2']],
+        idx = lambda wildcards: config['REF'][wildcards.refid] + ".bwt"
+    output:
+        bam = "alignments/{refid}_{sample}.bam"
+    params:
+        extra = get_read_group,
+        sorting = "samtools",
+        sort_order = "coordinate",
+        sort_extra = "-m3G",
+    threads: config['THREADS']['bwa']
+    log:
+        "logs/bwa_mem/{refid}_{sample}.log",
+    wrapper:
+        "v1.31.1/bio/bwa/mem"
+
+rule samtools_index:
+    input:
+        "alignments/{refid}_{sample}.bam",
+    output:
+        "alignments/{refid}_{sample}.bam.bai",
+    log:
+        "logs/samtools_index/{refid}_{sample}.log",
+    threads: 4
+    wrapper:
+        "v1.31.1/bio/samtools/index"
+
+rule samtools_stats:
+    input:
+        bam = "alignments/{refid}_{sample}.bam",
+        ref = lambda wildcards: config['REF'][wildcards.refid],
+        bai= "alignments/{refid}_{sample}.bam.bai"
+    output:
+        stats = "alignments/{refid}_{sample}.samtools_stats.txt"
+    params:
+        threads = config['THREADS']['samstat']
+    threads: config['THREADS']['samstat']
+    log:
+        "logs/samtools_stats/{refid}/{sample}.log"
+    wrapper:
+        "v1.31.1/bio/samtools/stats"
+
+rule mosdepth_bed:
+    input:
+        bam="alignments/{refid}_{sample}.bam",
+        bai="alignments/{refid}_{sample}.bam.bai",
+        bed="bed_file/chr4_1Mbp_segments_GRCh38_notinanysegdups.bed"
+    output:
+        "mosdepth_bed/{refid}_{sample}.mosdepth.global.dist.txt",
+        "mosdepth_bed/{refid}_{sample}.mosdepth.region.dist.txt",
+        "mosdepth_bed/{refid}_{sample}.regions.bed.gz",
+        summary="mosdepth_bed/{refid}_{sample}.mosdepth.summary.txt", 
+    log:
+        "logs/mosdepth_bed/{refid}_{sample}.log",
+    params:
+     extra ="--no-per-base"
+    threads: 4
+    wrapper:
+        "v3.3.5/bio/mosdepth"
+
+rule multiqc:
+    input:
+        expand("alignments/{refid}_{sample}.samtools_stats.txt", refid=config['REFIDS'], sample=config['SAMPLES']),
+        expand("fastqc/{sample}_fastqc.zip", sample=config['SAMPLES']),
+        expand( "mosdepth_bed/{refid}_{sample}.regions.bed.gz",refid=config['REFIDS'], sample=config['SAMPLES']),
+    output:
+        "qc/HG008_Element_Lnginsert_report.html"
+    log:
+        "logs/multiqc.log"
+    wrapper:
+        "v3.3.6/bio/multiqc"
