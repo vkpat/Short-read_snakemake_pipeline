@@ -11,6 +11,7 @@ The snakemake workflow for the tumor data includes fastQC, BWA-MEM, samtools ind
 
 Note: we dont use mosdpeth wrapper here since we only calculate chr4 mosdepth diploid and haploid mean coverages for the Tumor samples only so workflow doesn't include mosdepth wrapper here
 
+## Run the snakemake pipeline on postproc-g and WS
 
-
+snakemake --cores 30 --use-conda -p  --conda-frontend conda --default-resources "tmpdir='/lab/mml/resdatahs/Projects/644-BBD-human-genomics/bbd-human-genomics/projects/incoming-TN/tmp'"
 
