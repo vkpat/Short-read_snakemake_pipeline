@@ -5,7 +5,7 @@
 
 The snakemake workflow for the tumor data includes fastQC, BWA-MEM, samtools index, mosdepth, samtools stats and multiQC. The mosdepth wrapper was used to calculate the chr4 mosepth diploid and halploid mean coverages for the data. For the QC, GA4GH QC pipeline were used to generate the QC metrics for the short-read data
 
-**HG008-N-D**
+**HG008-N-D and HG008-N-P**
 
 The snakemake workflow for the tumor data includes fastQC, BWA-MEM, samtools index,samtools stats and multiQC. The mosdepth wrapper was used to calculate the chr4 mosepth diploid and halploid mean coverages for the data. For the QC, GA4GH QC pipeline were used to generate the QC metrics for the short-read data
 
